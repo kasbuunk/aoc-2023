@@ -83,65 +83,65 @@ fn string_to_numbers(s: &str) -> Vec<u32> {
 mod tests {
     use super::*;
 
-    struct Day1Calibration {
+    struct TestCase {
         input: String,
         expected_output_a: u32,
         expected_output_b: u32,
     }
 
     #[test]
-    fn test_day1() {
+    fn puzzle() {
         let test_cases = vec![
-            Day1Calibration {
+            TestCase {
                 input: "".into(),
                 expected_output_a: 0,
                 expected_output_b: 0,
             },
-            Day1Calibration {
+            TestCase {
                 input: "00".into(),
                 expected_output_a: 0,
                 expected_output_b: 0,
             },
-            Day1Calibration {
+            TestCase {
                 input: "1".into(),
                 expected_output_a: 11,
                 expected_output_b: 11,
             },
-            Day1Calibration {
+            TestCase {
                 input: "12".into(),
                 expected_output_a: 12,
                 expected_output_b: 12,
             },
-            Day1Calibration {
+            TestCase {
                 input: "102".into(),
                 expected_output_a: 12,
                 expected_output_b: 12,
             },
-            Day1Calibration {
+            TestCase {
                 input: "5a2".into(),
                 expected_output_a: 52,
                 expected_output_b: 52,
             },
-            Day1Calibration {
+            TestCase {
                 input: "a9b54c2ag".into(),
                 expected_output_a: 92,
                 expected_output_b: 92,
             },
-            Day1Calibration {
+            TestCase {
                 input: "12
 34"
                 .into(),
                 expected_output_a: 46,
                 expected_output_b: 46,
             },
-            Day1Calibration {
+            TestCase {
                 input: "a12b
 z3e4fg"
                     .into(),
                 expected_output_a: 46,
                 expected_output_b: 46,
             },
-            Day1Calibration {
+            TestCase {
                 input: "a12b
 z3e4fg
 5a2b3g1u"
@@ -149,7 +149,7 @@ z3e4fg
                 expected_output_a: 97,
                 expected_output_b: 97,
             },
-            Day1Calibration {
+            TestCase {
                 input: "1abc2
 pqr3stu8vwx
 a1b2c3d4e5f
@@ -158,27 +158,27 @@ treb7uchet"
                 expected_output_a: 142,
                 expected_output_b: 142,
             },
-            Day1Calibration {
+            TestCase {
                 input: "1two".into(),
                 expected_output_a: 11,
                 expected_output_b: 12,
             },
-            Day1Calibration {
+            TestCase {
                 input: "three5two".into(),
                 expected_output_a: 55,
                 expected_output_b: 32,
             },
-            Day1Calibration {
+            TestCase {
                 input: "xthree5twoc".into(),
                 expected_output_a: 55,
                 expected_output_b: 32,
             },
-            Day1Calibration {
+            TestCase {
                 input: "xthrebethree5twoc".into(),
                 expected_output_a: 55,
                 expected_output_b: 32,
             },
-            Day1Calibration {
+            TestCase {
                 input: "two1nine
 eightwo8three
 abcone2threexyz
@@ -190,7 +190,7 @@ zoneight234
                 expected_output_a: 297,
                 expected_output_b: 281,
             },
-            Day1Calibration {
+            TestCase {
                 input: "1eightwo".into(),
                 expected_output_a: 11,
                 expected_output_b: 12,
