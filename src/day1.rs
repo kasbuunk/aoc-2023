@@ -1,17 +1,17 @@
 use std::{fs::File, io::Read};
 
-pub fn day1() -> Result<(), Box<dyn std::error::Error>> {
-    // Load input from data directory.
+pub fn solution() -> Result<(u32, u32), Box<dyn std::error::Error>> {
     let data_file = "data/day1";
     let mut file = File::open(data_file)?;
     let mut data = "".into();
     let _ = file.read_to_string(&mut data)?;
 
-    let sum = day1_calibration_b(&data)?;
+    let sum_a = day1_calibration_a(&data)?;
+    let sum_b = day1_calibration_b(&data)?;
 
     // Print output, so it can be manually inserted in the aoc website.
-    println!("Sum: {}", sum);
-    Ok(())
+
+    Ok((sum_a, sum_b))
 }
 
 fn day1_calibration_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
