@@ -2,4 +2,13 @@
 
 These are my solutions to the advent of code problems of 2023. 
 
-See the `src/main.rs` file. Modularisation may come when the codebase gets larger.
+## Solutions
+
+See src/dayX[Y].rs for the solutions per day.
+
+## Usage
+
+Prerequisites:
+- `cargo` (install with `rustup` [here](https://www.rust-lang.org/tools/install))
+
+Clone the repository, cd into it and run `cargo run` to view the solutions.
