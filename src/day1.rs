@@ -1,20 +1,11 @@
-use std::{fs::File, io::Read};
-
-pub fn solution() -> Result<(u32, u32), Box<dyn std::error::Error>> {
-    let data_file = "data/day1";
-    let mut file = File::open(data_file)?;
-    let mut data = "".into();
-    let _ = file.read_to_string(&mut data)?;
-
-    let sum_a = day1_calibration_a(&data)?;
-    let sum_b = day1_calibration_b(&data)?;
-
-    // Print output, so it can be manually inserted in the aoc website.
+pub fn solution(data: &str) -> Result<(u32, u32), Box<dyn std::error::Error>> {
+    let sum_a = puzzle_a(data)?;
+    let sum_b = puzzle_b(data)?;
 
     Ok((sum_a, sum_b))
 }
 
-fn day1_calibration_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
+fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
     let sum: u32 = data
         .split_whitespace()
         .map(|x| {
@@ -37,17 +28,17 @@ fn day1_calibration_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
     Ok(sum)
 }
 
-fn day1_calibration_b(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
+fn puzzle_b(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
     let sum: u32 = data
         .split_whitespace()
-        .map(|x| calibrate_b(x))
+        .map(|x| string_to_numbers(x))
         .map(|x| x.iter().next().unwrap() * 10 + x.iter().next_back().unwrap())
         .sum();
 
     Ok(sum)
 }
 
-fn calibrate_b(s: &str) -> Vec<u32> {
+fn string_to_numbers(s: &str) -> Vec<u32> {
     let length = s.len();
     let mut list = vec![];
     let mut cursor = 0;
@@ -207,13 +198,13 @@ zoneight234
         ];
 
         for test_case in test_cases {
-            let output = day1_calibration_a(&test_case.input).expect("a calculation failed");
+            let output = puzzle_a(&test_case.input).expect("a calculation failed");
             assert_eq!(
                 output, test_case.expected_output_a,
                 "input: {:?}",
                 test_case.input
             );
-            let output = day1_calibration_b(&test_case.input).expect("b calculation failed");
+            let output = puzzle_b(&test_case.input).expect("b calculation failed");
             assert_eq!(
                 output, test_case.expected_output_b,
                 "input: {:?}",
