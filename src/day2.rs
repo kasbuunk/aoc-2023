@@ -27,65 +27,69 @@ struct GameRecord {
     cube_sets: Vec<CubeSet>,
 }
 
-fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
-    let sum = data
-        .lines()
-        .map(|line| {
-            let line_prefix = "Game ";
-            assert!(line.starts_with(line_prefix));
+fn extract_game_records<'a>(data: &'a str) -> impl Iterator<Item = GameRecord> + 'a {
+    data.lines().map(|line| {
+        let line_prefix = "Game ";
+        assert!(line.starts_with(line_prefix));
 
-            let mut colon_split = line[line_prefix.len()..].split_terminator(':');
+        let mut colon_split = line[line_prefix.len()..].split_terminator(':');
 
-            let id: u32 = colon_split
-                .next()
-                .expect("no colon found")
-                .parse()
-                .expect("string slice cannot be parsed as integer");
+        let id: u32 = colon_split
+            .next()
+            .expect("no colon found")
+            .parse()
+            .expect("string slice cannot be parsed as integer");
 
-            let cube_sets_str = colon_split
-                .next()
-                .expect("no game record after colon")
-                .trim();
+        let cube_sets_str = colon_split
+            .next()
+            .expect("no game record after colon")
+            .trim();
 
-            let cube_sets = cube_sets_str
-                .split_terminator(';')
-                .map(|cube_set| {
-                    let cubes = cube_set.split_terminator(',').map(|cube| {
-                        let mut cubes = cube.split_whitespace();
-                        let amount: u32 = cubes
-                            .next()
-                            .expect("no number found in cube")
-                            .parse()
-                            .expect("number could not be parsed");
+        let cube_sets = cube_sets_str
+            .split_terminator(';')
+            .map(|cube_set| {
+                let cubes = cube_set.split_terminator(',').map(|cube| {
+                    let mut cubes = cube.split_whitespace();
+                    let amount: u32 = cubes
+                        .next()
+                        .expect("no number found in cube")
+                        .parse()
+                        .expect("number could not be parsed");
 
-                        let colour: Colour = match cubes.next().expect("no number found in cube") {
-                            "red" => Colour::Red,
-                            "green" => Colour::Green,
-                            "blue" => Colour::Blue,
-                            _ => panic!("cannot parse cube colour"),
-                        };
+                    let colour: Colour = match cubes.next().expect("no number found in cube") {
+                        "red" => Colour::Red,
+                        "green" => Colour::Green,
+                        "blue" => Colour::Blue,
+                        _ => panic!("cannot parse cube colour"),
+                    };
 
-                        Cube { amount, colour }
-                    });
+                    Cube { amount, colour }
+                });
 
-                    let mut red = 0;
-                    let mut green = 0;
-                    let mut blue = 0;
+                let mut red = 0;
+                let mut green = 0;
+                let mut blue = 0;
 
-                    for cube in cubes {
-                        match cube.colour {
-                            Colour::Red => red = red + cube.amount,
-                            Colour::Green => green = green + cube.amount,
-                            Colour::Blue => blue = blue + cube.amount,
-                        }
+                for cube in cubes {
+                    match cube.colour {
+                        Colour::Red => red = red + cube.amount,
+                        Colour::Green => green = green + cube.amount,
+                        Colour::Blue => blue = blue + cube.amount,
                     }
+                }
 
-                    CubeSet { red, green, blue }
-                })
-                .collect();
+                CubeSet { red, green, blue }
+            })
+            .collect();
 
-            GameRecord { id, cube_sets }
-        })
+        GameRecord { id, cube_sets }
+    })
+}
+
+fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
+    let game_records = extract_game_records(data);
+
+    let sum = game_records
         .filter(|game_record| {
             // The record is included if there is no cube set with excessive cubes of a particular
             // colour.
@@ -101,64 +105,8 @@ fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
 }
 
 fn puzzle_b(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
-    let sum = data
-        .lines()
-        .map(|line| {
-            let line_prefix = "Game ";
-            assert!(line.starts_with(line_prefix));
-
-            let mut colon_split = line[line_prefix.len()..].split_terminator(':');
-
-            let id: u32 = colon_split
-                .next()
-                .expect("no colon found")
-                .parse()
-                .expect("string slice cannot be parsed as integer");
-
-            let cube_sets_str = colon_split
-                .next()
-                .expect("no game record after colon")
-                .trim();
-
-            let cube_sets = cube_sets_str
-                .split_terminator(';')
-                .map(|cube_set| {
-                    let cubes = cube_set.split_terminator(',').map(|cube| {
-                        let mut cubes = cube.split_whitespace();
-                        let amount: u32 = cubes
-                            .next()
-                            .expect("no number found in cube")
-                            .parse()
-                            .expect("number could not be parsed");
-
-                        let colour: Colour = match cubes.next().expect("no number found in cube") {
-                            "red" => Colour::Red,
-                            "green" => Colour::Green,
-                            "blue" => Colour::Blue,
-                            _ => panic!("cannot parse cube colour"),
-                        };
-
-                        Cube { amount, colour }
-                    });
-
-                    let mut red = 0;
-                    let mut green = 0;
-                    let mut blue = 0;
-
-                    for cube in cubes {
-                        match cube.colour {
-                            Colour::Red => red = red + cube.amount,
-                            Colour::Green => green = green + cube.amount,
-                            Colour::Blue => blue = blue + cube.amount,
-                        }
-                    }
-
-                    CubeSet { red, green, blue }
-                })
-                .collect();
-
-            GameRecord { id, cube_sets }
-        })
+    let game_records = extract_game_records(data);
+    let sum = game_records
         .map(|_game_record| {
             let mut red = 0;
             let mut green = 0;
