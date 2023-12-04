@@ -211,7 +211,7 @@ mod tests {
     }
 
     #[test]
-    fn test_puzzle_a() {
+    fn puzzle() {
         let test_cases = vec![
             TestCase {
                 input: "..12=..",
