@@ -3,23 +3,32 @@ use std::{fs::File, io::Read};
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (day1a, day1b) = crate::day1::solution(&load_data("day1")?)?;
-    let (day2a, day2b) = crate::day2::solution(&load_data("day2")?)?;
-    let (day3a, day3b) = crate::day3::solution(&load_data("day3")?)?;
-    let solutions = format!(
+    let solutions = vec![
+        crate::day1::solution(&load_data("day1")?)?,
+        crate::day2::solution(&load_data("day2")?)?,
+        crate::day3::solution(&load_data("day3")?)?,
+        crate::day4::solution(&load_data("day4")?)?,
+    ];
+
+    let solutions_report: String = solutions
+        .iter()
+        .enumerate()
+        .map(|(index, (solution_a, solution_b))| {
+            let day_number = index + 1;
+            format!(
+                "{}A: {}\n{}B: {}\n",
+                day_number, solution_a, day_number, solution_b
+            )
+        })
+        .collect();
+    println!(
         "Solutions:
-1A: {}
-1B: {}
-2A: {}
-2B: {}
-3A: {}
-3B: {}
-",
-        day1a, day1b, day2a, day2b, day3a, day3b,
+{}",
+        solutions_report
     );
-    println!("{}", &solutions);
 
     Ok(())
 }
