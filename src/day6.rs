@@ -2,10 +2,10 @@ pub fn solution(data: &str) -> Result<(u32, u32), Box<dyn std::error::Error>> {
     let sum_a = puzzle_a(&data)?;
     let sum_b = puzzle_b(&data)?;
 
-    Ok((sum_a, sum_b))
+    Ok((sum_a as u32, sum_b as u32))
 }
 
-fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
+fn puzzle_a(data: &str) -> Result<u64, Box<dyn std::error::Error>> {
     let races = extract_races(data);
 
     let combinations_to_win: u64 = races
@@ -13,13 +13,13 @@ fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
         .map(|x| compute_ways_to_beat_record(x))
         .product();
 
-    Ok(combinations_to_win as u32)
+    Ok(combinations_to_win as u64)
 }
 
-fn puzzle_b(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
+fn puzzle_b(data: &str) -> Result<u64, Box<dyn std::error::Error>> {
     let race = extract_race(data);
 
-    Ok(compute_ways_to_beat_record(&race) as u32)
+    Ok(compute_ways_to_beat_record(&race))
 }
 
 struct Race {
