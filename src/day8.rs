@@ -15,8 +15,12 @@ fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
     Ok(map.find_node(&node_start, &node_needle) as u32)
 }
 
-fn puzzle_b(_data: &str) -> Result<u32, Box<dyn std::error::Error>> {
-    Ok(0)
+fn puzzle_b(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
+    let mut map = extract_map(data);
+
+    let nodes_start = extract_starting_nodes(&map.nodes);
+
+    Ok(map.find_nodes(nodes_start) as u32)
 }
 
 struct Map {
@@ -35,6 +39,23 @@ impl Map {
                 } else {
                     false
                 }
+            })
+            .expect("could not find the desired node")
+            + 1 // The desired position is 1-indexed.
+    }
+
+    fn find_nodes(&mut self, nodes_start: Vec<NodeId>) -> usize {
+        let mut cursors = nodes_start;
+
+        self.directions
+            .position(|direction| {
+                // println!("cursors: {:?}", cursors);
+                cursors = cursors
+                    .iter()
+                    .map(|node| *traverse(&self.nodes, node, &direction))
+                    .collect();
+
+                cursors.iter().all(|node| node[2] == 'Z')
             })
             .expect("could not find the desired node")
             + 1 // The desired position is 1-indexed.
@@ -91,6 +112,16 @@ fn traverse<'a>(
         Direction::Left => &node.left,
         Direction::Right => &node.right,
     }
+}
+
+fn extract_starting_nodes(graph: &DirectedGraph) -> Vec<NodeId> {
+    graph
+        .iter()
+        .filter_map(|(node, _)| match (*node)[2] == 'A' {
+            true => Some(*node),
+            false => None,
+        })
+        .collect()
 }
 
 fn extract_map(data: &str) -> Map {
@@ -177,7 +208,7 @@ GGG = (GGG, GGG)
 ZZZ = (ZZZ, ZZZ)"
                     .into(),
                 expected_output_a: 2,
-                expected_output_b: 0,
+                expected_output_b: 2,
             },
             TestCase {
                 input: "LLR
@@ -187,7 +218,22 @@ BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"
                     .into(),
                 expected_output_a: 6,
-                expected_output_b: 0,
+                expected_output_b: 6,
+            },
+            TestCase {
+                input: "LR
+
+AAA = (11B, XXX)
+11B = (XXX, ZZZ)
+ZZZ = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)"
+                    .into(),
+                expected_output_a: 2,
+                expected_output_b: 6,
             },
         ];
 
