@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 pub fn solution(data: &str) -> Result<(u32, u32), Box<dyn std::error::Error>> {
     let sum_a = puzzle_a(&data)?;
     let sum_b = puzzle_b(&data)?;
@@ -8,9 +10,9 @@ pub fn solution(data: &str) -> Result<(u32, u32), Box<dyn std::error::Error>> {
 fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
     let node_start = must_parse_node_id("AAA");
     let node_needle = must_parse_node_id("ZZZ");
-    let mut map = extract_map(data, node_start);
+    let mut map = extract_map(data);
 
-    Ok(map.find_node(node_needle) as u32)
+    Ok(map.find_node(&node_start, &node_needle) as u32)
 }
 
 fn puzzle_b(_data: &str) -> Result<u32, Box<dyn std::error::Error>> {
@@ -23,11 +25,12 @@ struct Map {
 }
 
 impl Map {
-    fn find_node(&mut self, node_needle: NodeId) -> usize {
+    fn find_node(&mut self, node_start: &NodeId, node_needle: &NodeId) -> usize {
+        let mut cursor = node_start;
         self.directions
             .position(|direction| {
-                let node = self.nodes.traverse(&direction);
-                if node.id == node_needle {
+                cursor = traverse(&self.nodes, &cursor, &direction);
+                if cursor == node_needle {
                     true
                 } else {
                     false
@@ -71,49 +74,28 @@ impl Iterator for DirectionList {
 
 type NodeId = [char; 3];
 
-struct Node {
-    id: NodeId,
-    left_edge: NodeId,
-    right_edge: NodeId,
+type DirectedGraph = HashMap<NodeId, NodeDirectory>;
+
+struct NodeDirectory {
+    left: NodeId,
+    right: NodeId,
 }
 
-struct DirectedGraph {
-    nodes: Vec<Node>,
-    cursor: usize,
-}
-
-impl DirectedGraph {
-    fn new(nodes: Vec<Node>, node_start: NodeId) -> Self {
-        let (cursor, _) = Self::find_position(&nodes, node_start);
-        DirectedGraph { nodes, cursor }
-    }
-
-    fn find_position(nodes: &[Node], node_id_needle: NodeId) -> (usize, &Node) {
-        nodes
-            .iter()
-            .enumerate()
-            .find(|(_index, node)| node.id == node_id_needle)
-            .expect("failed to traverse node graph")
-    }
-
-    fn traverse(&mut self, direction: &Direction) -> &Node {
-        let node = &self.nodes[self.cursor];
-        let new_node_id = match direction {
-            Direction::Left => node.left_edge,
-            Direction::Right => node.right_edge,
-        };
-
-        let (new_node_index, new_node) = Self::find_position(&self.nodes, new_node_id);
-
-        self.cursor = new_node_index;
-
-        new_node
+fn traverse<'a>(
+    graph: &'a DirectedGraph,
+    node_start: &NodeId,
+    direction: &Direction,
+) -> &'a NodeId {
+    let node = graph.get(node_start).expect("node id not found");
+    match direction {
+        Direction::Left => &node.left,
+        Direction::Right => &node.right,
     }
 }
 
-fn extract_map(data: &str, node_start: NodeId) -> Map {
+fn extract_map(data: &str) -> Map {
     let directions = extract_directions(data.lines().next().expect("could not find first line"));
-    let graph = extract_graph(data, node_start);
+    let graph = extract_graph(data);
     Map {
         directions,
         nodes: graph,
@@ -134,30 +116,31 @@ fn extract_directions(directions_str: &str) -> DirectionList {
     DirectionList::new(directions)
 }
 
-fn extract_graph(data: &str, node_start: NodeId) -> DirectedGraph {
-    let nodes = data
-        .lines()
-        .skip(2)
-        .map(|line| {
-            let mut line_iter = line.split_whitespace();
-            let node_id = must_parse_node_id(line_iter.next().expect("no first node found"));
+fn extract_graph(data: &str) -> DirectedGraph {
+    let mut graph: DirectedGraph = DirectedGraph::new();
 
-            let mut line_iter = line_iter.skip(1);
+    data.lines().skip(2).for_each(|line| {
+        let mut line_iter = line.split_whitespace();
+        let node_id = must_parse_node_id(line_iter.next().expect("no first node found"));
 
-            let left_node_id_str = line_iter.next().expect("no left node found");
-            let left_node_id = must_parse_node_id(&left_node_id_str[1..=3]);
+        let mut line_iter = line_iter.skip(1);
 
-            let right_node_id_str = line_iter.next().expect("no right node found");
-            let right_node_id = must_parse_node_id(&right_node_id_str[..=2]);
+        let left_node_id_str = line_iter.next().expect("no left node found");
+        let left_node_id = must_parse_node_id(&left_node_id_str[1..=3]);
 
-            Node {
-                id: node_id,
-                left_edge: left_node_id,
-                right_edge: right_node_id,
-            }
-        })
-        .collect();
-    DirectedGraph::new(nodes, node_start)
+        let right_node_id_str = line_iter.next().expect("no right node found");
+        let right_node_id = must_parse_node_id(&right_node_id_str[..=2]);
+
+        let _ = graph.insert(
+            node_id,
+            NodeDirectory {
+                left: left_node_id,
+                right: right_node_id,
+            },
+        );
+    });
+
+    graph
 }
 
 fn must_parse_node_id(node_id_string: &str) -> NodeId {
