@@ -8,6 +8,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let solutions = vec![
@@ -19,6 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         crate::day6::solution(&load_data("day6")?)?,
         crate::day7::solution(&load_data("day7")?)?,
         crate::day8::solution(&load_data("day8")?)?,
+        crate::day9::solution(&load_data("day9")?)?,
     ];
 
     let solutions_report: String = solutions
