@@ -1,10 +1,14 @@
 use std::collections::HashMap;
+use std::fmt;
+use std::time::Instant;
 
 pub fn solution(data: &str) -> Result<(u32, u32), Box<dyn std::error::Error>> {
     let sum_a = puzzle_a(&data)?;
     let sum_b = puzzle_b(&data)?;
 
-    Ok((sum_a, sum_b))
+    println!("day 8 b: {}", sum_b);
+
+    Ok((sum_a, sum_b as u32))
 }
 
 fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
@@ -12,15 +16,15 @@ fn puzzle_a(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
     let node_needle = must_parse_node_id("ZZZ");
     let mut map = extract_map(data);
 
-    Ok(map.find_node(&node_start, &node_needle) as u32)
+    Ok(map.traverse_graph(&node_start, &node_needle) as u32)
 }
 
-fn puzzle_b(data: &str) -> Result<u32, Box<dyn std::error::Error>> {
+fn puzzle_b(data: &str) -> Result<u64, Box<dyn std::error::Error>> {
     let mut map = extract_map(data);
 
     let nodes_start = extract_starting_nodes(&map.nodes);
 
-    Ok(map.find_nodes(nodes_start) as u32)
+    Ok(map.traverse_graph_simultaneous(nodes_start) as u64)
 }
 
 struct Map {
@@ -29,7 +33,7 @@ struct Map {
 }
 
 impl Map {
-    fn find_node(&mut self, node_start: &NodeId, node_needle: &NodeId) -> usize {
+    fn traverse_graph(&mut self, node_start: &NodeId, node_needle: &NodeId) -> usize {
         let mut cursor = node_start;
         self.directions
             .position(|direction| {
@@ -44,22 +48,47 @@ impl Map {
             + 1 // The desired position is 1-indexed.
     }
 
-    fn find_nodes(&mut self, nodes_start: Vec<NodeId>) -> usize {
-        let mut cursors = nodes_start;
+    fn traverse_graph_simultaneous(&mut self, nodes_start: Vec<NodeId>) -> usize {
+        let now = Instant::now();
+        let mut counter: u64 = 0;
+        let base: u64 = 2;
+        let mut power_of_two: u32 = 0;
+        let mut cursors = nodes_start.clone();
+
+        println!("Nodes at {}: {}", counter, format_nodes(&nodes_start));
 
         self.directions
             .position(|direction| {
-                // println!("cursors: {:?}", cursors);
                 cursors = cursors
                     .iter()
-                    .map(|node| *traverse(&self.nodes, node, &direction))
+                    .map(|node| (*traverse(&self.nodes, node, &direction)).clone())
                     .collect();
 
-                cursors.iter().all(|node| node[2] == 'Z')
+                counter += 1;
+                if counter >= base.pow(power_of_two) {
+                    println!(
+                        "Index {} after {}s: {}",
+                        counter,
+                        now.elapsed().as_secs(),
+                        format_nodes(&cursors)
+                    );
+                    power_of_two += 1;
+                }
+
+                cursors.iter().all(|node| node.0[2] == 'Z')
             })
             .expect("could not find the desired node")
             + 1 // The desired position is 1-indexed.
     }
+}
+
+fn format_nodes(nodes: &[NodeId]) -> String {
+    let formatted_ids = nodes
+        .iter()
+        .map(|id| id.to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
+    formatted_ids
 }
 
 #[derive(Clone)]
@@ -93,7 +122,27 @@ impl Iterator for DirectionList {
     }
 }
 
-type NodeId = [char; 3];
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+struct NodeId([char; 3]);
+
+impl fmt::Display for NodeId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}{}{}", self.0[0], self.0[1], self.0[2])
+    }
+}
+
+impl From<Vec<char>> for NodeId {
+    fn from(chars: Vec<char>) -> NodeId {
+        NodeId(
+            chars
+                .into_iter()
+                .take(3)
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("could not convert chars to node id"),
+        )
+    }
+}
 
 type DirectedGraph = HashMap<NodeId, NodeDirectory>;
 
@@ -117,8 +166,8 @@ fn traverse<'a>(
 fn extract_starting_nodes(graph: &DirectedGraph) -> Vec<NodeId> {
     graph
         .iter()
-        .filter_map(|(node, _)| match (*node)[2] == 'A' {
-            true => Some(*node),
+        .filter_map(|(node, _)| match (*node).0[2] == 'A' {
+            true => Some((*node).clone()),
             false => None,
         })
         .collect()
@@ -190,7 +239,7 @@ mod tests {
     struct TestCase {
         input: String,
         expected_output_a: u32,
-        expected_output_b: u32,
+        expected_output_b: u64,
     }
 
     #[test]
